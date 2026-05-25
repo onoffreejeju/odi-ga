@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --app-bg: #f8fafc;
+  --app-fg: #0f172a;
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: #020617;
+  --app-fg: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-fg);
+  font-family: Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.mobile-shell {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #ffffff;
+}
+
+.dark .mobile-shell {
+  background: #0f172a;
+}
+
+.safe-bottom {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+.celebrate {
+  animation: celebrate 760ms ease-out both;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}

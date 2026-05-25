@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "ODI:GA",
+    "slogan": "Help someone on the way you already go"
+  },
+  "requester": {
+    "delivery": "Delivery",
+    "purchase": "Purchase",
+    "pickup": "Pickup",
+    "etc": "Other",
+    "submit": "Request",
+    "waiting": "Finding a Helper"
+  }
+}
