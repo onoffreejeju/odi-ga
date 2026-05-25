@@ -57,22 +57,22 @@ export default function GoogleMap({
     [destination, origin]
   );
 
-  if (!apiKey || loadError) {
+  if (!apiKey) {
     return (
       <div
         className={`flex min-h-[240px] items-center justify-center bg-slate-100 px-6 text-center text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
       >
-        Google Maps 키를 설정하면 지도가 표시됩니다.
+        Google Maps API 키를 설정해주세요
       </div>
     );
   }
 
-  if (!isLoaded) {
+  if (loadError || !isLoaded) {
     return (
       <div
         className={`flex min-h-[240px] items-center justify-center bg-slate-100 text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
       >
-        지도를 불러오는 중입니다.
+        지도 로딩 중...
       </div>
     );
   }
