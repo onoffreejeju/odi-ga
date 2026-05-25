@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, MapPin, ShoppingCart, Star } from "lucide-react";
-import KakaoMap from "@/components/KakaoMap";
-import { searchPlace, type LatLng } from "@/lib/kakaoMap";
+import GoogleMap from "@/components/GoogleMap";
+import GooglePlaceInput from "@/components/GooglePlaceInput";
+import type { LatLng } from "@/lib/googleMap";
 import { createClient } from "@/lib/supabase/client";
 
 const categories = [
@@ -25,16 +26,6 @@ export default function NewErrandPage() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [mapOpen, setMapOpen] = useState(true);
   const [message, setMessage] = useState("");
-
-  const findPlace = async (type: "pickup" | "dropoff") => {
-    const result = await searchPlace(type === "pickup" ? pickupQuery : dropoffQuery);
-    if (!result) {
-      setMessage("장소를 찾지 못했습니다.");
-      return;
-    }
-    type === "pickup" ? setPickup(result) : setDropoff(result);
-    setMessage("");
-  };
 
   const submit = async () => {
     if (!description || !pickup || !dropoff) {
@@ -136,16 +127,28 @@ export default function NewErrandPage() {
         </button>
         {mapOpen ? (
           <div>
-            <KakaoMap origin={pickup} destination={dropoff} className="h-64" />
+            <GoogleMap origin={pickup} destination={dropoff} className="h-64" />
             <div className="space-y-3 p-4">
-              <div className="flex gap-2">
-                <input value={pickupQuery} onChange={(event) => setPickupQuery(event.target.value)} placeholder="픽업 위치" className="h-11 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-950" />
-                <button onClick={() => findPlace("pickup")} className="rounded-lg bg-requester-600 px-3 text-sm font-bold text-white">검색</button>
-              </div>
-              <div className="flex gap-2">
-                <input value={dropoffQuery} onChange={(event) => setDropoffQuery(event.target.value)} placeholder="드롭 위치" className="h-11 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-950" />
-                <button onClick={() => findPlace("dropoff")} className="rounded-lg bg-requester-600 px-3 text-sm font-bold text-white">검색</button>
-              </div>
+              <GooglePlaceInput
+                value={pickupQuery}
+                onChange={setPickupQuery}
+                onPlaceSelect={(place) => {
+                  setPickup(place);
+                  setMessage("");
+                }}
+                placeholder="픽업 위치"
+                className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+              />
+              <GooglePlaceInput
+                value={dropoffQuery}
+                onChange={setDropoffQuery}
+                onPlaceSelect={(place) => {
+                  setDropoff(place);
+                  setMessage("");
+                }}
+                placeholder="드롭 위치"
+                className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+              />
             </div>
           </div>
         ) : null}

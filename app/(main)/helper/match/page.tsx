@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import KakaoMap from "@/components/KakaoMap";
+import GoogleMap from "@/components/GoogleMap";
 import ErrandCard from "@/components/ErrandCard";
 import { createClient } from "@/lib/supabase/client";
 import { matchErrands, type MatchedErrand } from "@/lib/matching";
-import type { LatLng } from "@/lib/kakaoMap";
+import type { LatLng } from "@/lib/googleMap";
 
 export default function MatchPage() {
   const router = useRouter();
@@ -73,7 +73,7 @@ export default function MatchPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <KakaoMap
+      <GoogleMap
         origin={origin}
         destination={destination}
         errands={errands.map((errand) => ({

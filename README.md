@@ -8,7 +8,7 @@
 - Supabase Auth, Database, Storage, Realtime 준비
 - Tailwind CSS, Pretendard 폰트 스택
 - next-intl 한국어/영어 메시지
-- Kakao Maps JavaScript SDK
+- Google Maps JavaScript API + Places API
 - PWA manifest
 
 ## 로컬 실행
@@ -24,7 +24,7 @@ npm run dev
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_KAKAO_MAP_KEY=
+NEXT_PUBLIC_GOOGLE_MAPS_KEY=
 ```
 
 브라우저에서 `http://localhost:3000`을 엽니다.
@@ -37,8 +37,8 @@ NEXT_PUBLIC_KAKAO_MAP_KEY=
 4. Kakao/Google OAuth redirect URL에 Supabase callback URL을 등록합니다.
 5. 사진 업로드를 사용하려면 `errand-photos` Storage bucket을 생성합니다.
 
-## Kakao Maps 설정
+## Google Maps 설정
 
-1. Kakao Developers에서 앱을 생성합니다.
-2. JavaScript 키를 `.env.local`의 `NEXT_PUBLIC_KAKAO_MAP_KEY`에 입력합니다.
-3. 플랫폼에 `http://localhost:3000`과 배포 도메인을 등록합니다.
+1. Google Cloud Console에서 Maps JavaScript API와 Places API를 활성화합니다.
+2. API 키를 생성하고 `.env.local`의 `NEXT_PUBLIC_GOOGLE_MAPS_KEY`에 입력합니다.
+3. HTTP referrer 제한에 `http://localhost:3000/*`와 배포 도메인을 등록합니다.

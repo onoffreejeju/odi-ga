@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import KakaoMap from "@/components/KakaoMap";
-import { searchPlace, type LatLng } from "@/lib/kakaoMap";
+import GoogleMap from "@/components/GoogleMap";
+import GooglePlaceInput from "@/components/GooglePlaceInput";
+import type { LatLng } from "@/lib/googleMap";
 import { createClient } from "@/lib/supabase/client";
 
 export default function NewRoutePage() {
@@ -14,16 +15,6 @@ export default function NewRoutePage() {
   const [destination, setDestination] = useState<LatLng | null>(null);
   const [departureTime, setDepartureTime] = useState("");
   const [message, setMessage] = useState("");
-
-  const findPlace = async (type: "origin" | "destination") => {
-    const result = await searchPlace(type === "origin" ? originQuery : destQuery);
-    if (!result) {
-      setMessage("장소를 찾지 못했습니다.");
-      return;
-    }
-    type === "origin" ? setOrigin(result) : setDestination(result);
-    setMessage("");
-  };
 
   const submit = async () => {
     if (!origin || !destination || !departureTime) {
@@ -59,32 +50,30 @@ export default function NewRoutePage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <KakaoMap origin={origin} destination={destination} className="h-[60vh]" />
+      <GoogleMap origin={origin} destination={destination} className="h-[60vh]" />
       <section className="-mt-4 rounded-t-2xl bg-white px-5 py-5 shadow-soft dark:bg-slate-950">
         <h1 className="text-xl font-black text-slate-950 dark:text-white">경로 등록</h1>
         <div className="mt-4 space-y-3">
-          <div className="flex gap-2">
-            <input
-              value={originQuery}
-              onChange={(event) => setOriginQuery(event.target.value)}
-              placeholder="출발지 검색"
-              className="h-12 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
-            />
-            <button className="rounded-lg bg-helper-600 px-4 text-sm font-bold text-white" onClick={() => findPlace("origin")}>
-              검색
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <input
-              value={destQuery}
-              onChange={(event) => setDestQuery(event.target.value)}
-              placeholder="도착지 검색"
-              className="h-12 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
-            />
-            <button className="rounded-lg bg-red-500 px-4 text-sm font-bold text-white" onClick={() => findPlace("destination")}>
-              검색
-            </button>
-          </div>
+          <GooglePlaceInput
+            value={originQuery}
+            onChange={setOriginQuery}
+            onPlaceSelect={(place) => {
+              setOrigin(place);
+              setMessage("");
+            }}
+            placeholder="출발지 검색"
+            className="h-12 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+          <GooglePlaceInput
+            value={destQuery}
+            onChange={setDestQuery}
+            onPlaceSelect={(place) => {
+              setDestination(place);
+              setMessage("");
+            }}
+            placeholder="도착지 검색"
+            className="h-12 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
           <input
             type="datetime-local"
             value={departureTime}
