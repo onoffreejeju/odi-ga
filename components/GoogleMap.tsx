@@ -10,13 +10,18 @@ import {
 } from "@react-google-maps/api";
 import { getGoogleMapsLanguage, getGoogleMapsRegion, type LatLng } from "@/lib/googleMap";
 
+export type MapPoint = LatLng & {
+  id?: string;
+};
+
 type GoogleMapProps = {
   origin?: LatLng | null;
   destination?: LatLng | null;
-  errands?: LatLng[];
+  errands?: MapPoint[];
   className?: string;
   zoom?: number;
   onMapClick?: (point: LatLng) => void;
+  onErrandClick?: (point: MapPoint) => void;
 };
 
 const libraries: Libraries = ["places"];
@@ -33,7 +38,8 @@ export default function GoogleMap({
   errands = [],
   className = "",
   zoom = 12,
-  onMapClick
+  onMapClick,
+  onErrandClick
 }: GoogleMapProps) {
   const language = getGoogleMapsLanguage();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
@@ -63,7 +69,7 @@ export default function GoogleMap({
   if (!apiKey) {
     return (
       <div
-        className={`flex min-h-[240px] items-center justify-center bg-slate-100 px-6 text-center text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
+        className={`flex min-h-[220px] items-center justify-center bg-slate-100 px-6 text-center text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
       >
         Google Maps API 키를 설정해주세요
       </div>
@@ -73,7 +79,7 @@ export default function GoogleMap({
   if (loadError || !isLoaded) {
     return (
       <div
-        className={`flex min-h-[240px] items-center justify-center bg-slate-100 text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
+        className={`flex min-h-[220px] items-center justify-center bg-slate-100 text-sm font-semibold text-slate-500 dark:bg-slate-800 ${className}`}
       >
         지도 로딩 중...
       </div>
@@ -83,7 +89,7 @@ export default function GoogleMap({
   return (
     <div className={`overflow-hidden bg-slate-100 dark:bg-slate-800 ${className}`}>
       <ReactGoogleMap
-        mapContainerClassName="h-full min-h-[240px] w-full"
+        mapContainerClassName="h-full min-h-[220px] w-full"
         center={center}
         zoom={origin && destination ? 12 : zoom}
         options={mapOptions}
@@ -94,11 +100,7 @@ export default function GoogleMap({
             return;
           }
 
-          onMapClick({
-            lat,
-            lng,
-            name: "선택한 위치"
-          });
+          onMapClick({ lat, lng, name: "선택한 위치" });
         }}
       >
         {origin ? (
@@ -131,9 +133,10 @@ export default function GoogleMap({
         ) : null}
         {errands.map((errand) => (
           <MarkerF
-            key={`${errand.lat}-${errand.lng}-${errand.name}`}
+            key={`${errand.id || errand.name}-${errand.lat}-${errand.lng}`}
             position={{ lat: errand.lat, lng: errand.lng }}
             title={errand.name}
+            onClick={() => onErrandClick?.(errand)}
             icon={{
               path: google.maps.SymbolPath.CIRCLE,
               scale: 8,
