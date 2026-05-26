@@ -3,12 +3,17 @@
     "appName": "ODI:GA",
     "slogan": "Help someone on the way you already go"
   },
+  "roles": {
+    "helper": "Helper",
+    "requester": "Requester"
+  },
   "requester": {
     "delivery": "Delivery",
     "purchase": "Purchase",
     "pickup": "Pickup",
     "etc": "Other",
     "submit": "Request",
-    "waiting": "Finding a Helper"
+    "waiting": "Finding a Helper",
+    "destination": "Errand Destination"
   }
 }

@@ -21,7 +21,7 @@ export default function ErrandCard({
   description,
   pickupName,
   detourKm,
-  requesterName = "Requester",
+  requesterName = "의뢰인",
   onHelp
 }: ErrandCardProps) {
   const Icon = icons[category as keyof typeof icons] || Star;

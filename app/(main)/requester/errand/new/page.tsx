@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, LocateFixed, MapPin, ShoppingCart, Star } from "lucide-react";
+import { Box, ImagePlus, LocateFixed, MapPin, ShoppingCart, Star } from "lucide-react";
 import GoogleMap from "@/components/GoogleMap";
 import GooglePlaceInput from "@/components/GooglePlaceInput";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
@@ -10,10 +10,10 @@ import type { LatLng } from "@/lib/googleMap";
 import { createClient } from "@/lib/supabase/client";
 
 const categories = [
-  { id: "delivery", labelKo: "물건 전달", labelEn: "Delivery", Icon: Box },
-  { id: "purchase", labelKo: "구매 대행", labelEn: "Purchase", Icon: ShoppingCart },
-  { id: "pickup", labelKo: "픽업", labelEn: "Pickup", Icon: MapPin },
-  { id: "etc", labelKo: "기타", labelEn: "Other", Icon: Star }
+  { id: "delivery", labelKo: "물건 전달", Icon: Box },
+  { id: "purchase", labelKo: "구매 대행", Icon: ShoppingCart },
+  { id: "pickup", labelKo: "픽업", Icon: MapPin },
+  { id: "etc", labelKo: "기타", Icon: Star }
 ];
 
 export default function NewErrandPage() {
@@ -36,11 +36,11 @@ export default function NewErrandPage() {
 
   const submit = async () => {
     if (!description || !location) {
-      setMessage("설명과 심부름 위치를 입력하세요.");
+      setMessage("의뢰 내용과 의뢰 위치를 입력하세요.");
       return;
     }
     if (needsDestination && !dropoff) {
-      setMessage("배달 목적지를 입력하세요.");
+      setMessage("의뢰 목적지를 입력하세요.");
       return;
     }
 
@@ -92,8 +92,8 @@ export default function NewErrandPage() {
     <main className="px-4 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-requester-600">Requester</p>
-          <h1 className="text-xl font-black text-slate-950 dark:text-white">심부름 요청</h1>
+          <p className="text-xs font-bold text-requester-600">의뢰인</p>
+          <h1 className="text-xl font-black text-slate-950 dark:text-white">의뢰하기</h1>
         </div>
         <button
           type="button"
@@ -143,7 +143,7 @@ export default function NewErrandPage() {
             setLocation(place);
             setMessage("");
           }}
-          placeholder={loading ? "현위치 확인 중" : locationError || "심부름 위치"}
+          placeholder={loading ? "현위치 확인 중" : locationError || "의뢰 위치"}
           className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
         />
         {needsDestination ? (
@@ -154,23 +154,28 @@ export default function NewErrandPage() {
               setDropoff(place);
               setMessage("");
             }}
-            placeholder="배달 목적지"
+            placeholder="의뢰 목적지"
             className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-700 dark:bg-slate-900"
           />
         ) : null}
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="무엇을 도와드리면 될까요?"
+          placeholder="어떤 도움이 필요한가요?"
           rows={3}
           className="w-full resize-none rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-700 dark:bg-slate-900"
         />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
-          className="w-full rounded-lg border border-slate-200 p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-        />
+        <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 text-sm font-black text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          <ImagePlus size={18} />
+          {photo ? photo.name : "이미지 업로드"}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
+            className="sr-only"
+          />
+        </label>
       </section>
 
       {message ? <p className="mt-2 text-sm font-semibold text-red-500">{message}</p> : null}
@@ -179,7 +184,7 @@ export default function NewErrandPage() {
         onClick={submit}
         className="mt-3 h-12 w-full rounded-lg bg-requester-600 text-base font-black text-white"
       >
-        요청하기
+        의뢰하기
       </button>
     </main>
   );

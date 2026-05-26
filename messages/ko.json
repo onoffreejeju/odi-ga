@@ -3,12 +3,17 @@
     "appName": "어디:가",
     "slogan": "내가 가는 길 중에, 누군가를 돕는다"
   },
+  "roles": {
+    "helper": "헬퍼",
+    "requester": "의뢰인"
+  },
   "requester": {
     "delivery": "물건 전달",
     "purchase": "구매 대행",
     "pickup": "픽업",
     "etc": "기타",
-    "submit": "요청하기",
-    "waiting": "Helper를 찾고 있습니다"
+    "submit": "의뢰하기",
+    "waiting": "헬퍼를 찾고 있습니다",
+    "destination": "의뢰 목적지"
   }
 }

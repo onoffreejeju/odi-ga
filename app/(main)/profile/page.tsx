@@ -5,7 +5,7 @@ export default function ProfilePage() {
       <section className="mt-5 rounded-lg bg-white p-5 shadow-sm dark:bg-slate-900">
         <div className="h-16 w-16 rounded-full bg-gradient-to-br from-helper-500 to-requester-600" />
         <p className="mt-4 text-lg font-black text-slate-950 dark:text-white">여행자님</p>
-        <p className="mt-1 text-sm font-semibold text-slate-500">Level 1 Helper</p>
+        <p className="mt-1 text-sm font-semibold text-slate-500">Level 1 헬퍼</p>
       </section>
     </main>
   );
