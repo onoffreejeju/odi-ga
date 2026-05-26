@@ -23,9 +23,21 @@ export default function NewErrandPage() {
   const [dropoffQuery, setDropoffQuery] = useState("");
   const [pickup, setPickup] = useState<LatLng | null>(null);
   const [dropoff, setDropoff] = useState<LatLng | null>(null);
+  const [clickTarget, setClickTarget] = useState<"pickup" | "dropoff">("pickup");
   const [photo, setPhoto] = useState<File | null>(null);
   const [mapOpen, setMapOpen] = useState(true);
   const [message, setMessage] = useState("");
+
+  const selectPoint = (point: LatLng) => {
+    if (clickTarget === "pickup") {
+      setPickup(point);
+      setPickupQuery(point.name);
+    } else {
+      setDropoff(point);
+      setDropoffQuery(point.name);
+    }
+    setMessage("");
+  };
 
   const submit = async () => {
     if (!description || !pickup || !dropoff) {
@@ -127,8 +139,28 @@ export default function NewErrandPage() {
         </button>
         {mapOpen ? (
           <div>
-            <GoogleMap origin={pickup} destination={dropoff} className="h-64" />
+            <GoogleMap origin={pickup} destination={dropoff} className="h-64" onMapClick={selectPoint} />
             <div className="space-y-3 p-4">
+              <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setClickTarget("pickup")}
+                  className={`h-10 rounded-md text-sm font-bold ${
+                    clickTarget === "pickup" ? "bg-white text-helper-700 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  픽업 위치
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setClickTarget("dropoff")}
+                  className={`h-10 rounded-md text-sm font-bold ${
+                    clickTarget === "dropoff" ? "bg-white text-red-600 shadow-sm" : "text-slate-500"
+                  }`}
+                >
+                  드롭 위치
+                </button>
+              </div>
               <GooglePlaceInput
                 value={pickupQuery}
                 onChange={setPickupQuery}

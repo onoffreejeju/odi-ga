@@ -15,12 +15,13 @@ type GoogleMapProps = {
   destination?: LatLng | null;
   errands?: LatLng[];
   className?: string;
+  zoom?: number;
+  onMapClick?: (point: LatLng) => void;
 };
 
 const libraries: Libraries = ["places"];
-const fallbackCenter = { lat: 33.4996, lng: 126.5312 };
+const seoulCenter = { lat: 37.5665, lng: 126.978 };
 const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: true,
   zoomControl: true,
   clickableIcons: false,
   gestureHandling: "greedy"
@@ -30,7 +31,9 @@ export default function GoogleMap({
   origin,
   destination,
   errands = [],
-  className = ""
+  className = "",
+  zoom = 12,
+  onMapClick
 }: GoogleMapProps) {
   const language = getGoogleMapsLanguage();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
@@ -43,7 +46,7 @@ export default function GoogleMap({
   });
 
   const center = useMemo(
-    () => origin || destination || errands[0] || fallbackCenter,
+    () => origin || destination || errands[0] || seoulCenter,
     [destination, errands, origin]
   );
   const path = useMemo(
@@ -82,8 +85,21 @@ export default function GoogleMap({
       <ReactGoogleMap
         mapContainerClassName="h-full min-h-[240px] w-full"
         center={center}
-        zoom={origin && destination ? 11 : 13}
+        zoom={origin && destination ? 12 : zoom}
         options={mapOptions}
+        onClick={(event) => {
+          const lat = event.latLng?.lat();
+          const lng = event.latLng?.lng();
+          if (lat === undefined || lng === undefined || !onMapClick) {
+            return;
+          }
+
+          onMapClick({
+            lat,
+            lng,
+            name: "선택한 위치"
+          });
+        }}
       >
         {origin ? (
           <MarkerF

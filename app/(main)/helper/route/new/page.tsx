@@ -13,8 +13,20 @@ export default function NewRoutePage() {
   const [destQuery, setDestQuery] = useState("");
   const [origin, setOrigin] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
+  const [clickTarget, setClickTarget] = useState<"origin" | "destination">("origin");
   const [departureTime, setDepartureTime] = useState("");
   const [message, setMessage] = useState("");
+
+  const selectPoint = (point: LatLng) => {
+    if (clickTarget === "origin") {
+      setOrigin(point);
+      setOriginQuery(point.name);
+    } else {
+      setDestination(point);
+      setDestQuery(point.name);
+    }
+    setMessage("");
+  };
 
   const submit = async () => {
     if (!origin || !destination || !departureTime) {
@@ -50,9 +62,34 @@ export default function NewRoutePage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <GoogleMap origin={origin} destination={destination} className="h-[60vh]" />
+      <GoogleMap
+        origin={origin}
+        destination={destination}
+        className="h-[60vh]"
+        onMapClick={selectPoint}
+      />
       <section className="-mt-4 rounded-t-2xl bg-white px-5 py-5 shadow-soft dark:bg-slate-950">
         <h1 className="text-xl font-black text-slate-950 dark:text-white">경로 등록</h1>
+        <div className="mt-4 grid grid-cols-2 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+          <button
+            type="button"
+            onClick={() => setClickTarget("origin")}
+            className={`h-10 rounded-md text-sm font-bold ${
+              clickTarget === "origin" ? "bg-white text-helper-700 shadow-sm" : "text-slate-500"
+            }`}
+          >
+            출발지 선택
+          </button>
+          <button
+            type="button"
+            onClick={() => setClickTarget("destination")}
+            className={`h-10 rounded-md text-sm font-bold ${
+              clickTarget === "destination" ? "bg-white text-red-600 shadow-sm" : "text-slate-500"
+            }`}
+          >
+            도착지 선택
+          </button>
+        </div>
         <div className="mt-4 space-y-3">
           <GooglePlaceInput
             value={originQuery}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { MessageCircle, Star } from "lucide-react";
+import GoogleMap from "@/components/GoogleMap";
 import { createClient } from "@/lib/supabase/client";
 
 const steps = ["requested", "matched", "in_progress", "completed"];
@@ -13,7 +14,11 @@ type Errand = {
   category: string;
   description: string;
   photo_url: string | null;
+  pickup_lat: number;
+  pickup_lng: number;
   pickup_name: string;
+  dropoff_lat: number;
+  dropoff_lng: number;
   dropoff_name: string;
   status: string;
   requester_id: string;
@@ -90,6 +95,17 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
     return <main className="p-5 text-sm font-semibold text-slate-500">{message || "불러오는 중"}</main>;
   }
 
+  const pickup = {
+    lat: errand.pickup_lat,
+    lng: errand.pickup_lng,
+    name: errand.pickup_name
+  };
+  const dropoff = {
+    lat: errand.dropoff_lat,
+    lng: errand.dropoff_lng,
+    name: errand.dropoff_name
+  };
+
   return (
     <main className="px-5 py-6">
       <h1 className="text-2xl font-black text-slate-950 dark:text-white">심부름 진행</h1>
@@ -114,17 +130,20 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
         {labels.map((label) => <span key={label}>{label}</span>)}
       </div>
 
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-xs font-bold uppercase text-requester-600">{errand.category}</p>
-        <p className="mt-2 text-base font-bold text-slate-950 dark:text-white">{errand.description}</p>
-        {errand.photo_url ? (
-          <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-lg">
-            <Image src={errand.photo_url} alt="" fill className="object-cover" />
+      <section className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <GoogleMap origin={pickup} destination={dropoff} className="h-64" />
+        <div className="p-4">
+          <p className="text-xs font-bold uppercase text-requester-600">{errand.category}</p>
+          <p className="mt-2 text-base font-bold text-slate-950 dark:text-white">{errand.description}</p>
+          {errand.photo_url ? (
+            <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-lg">
+              <Image src={errand.photo_url} alt="" fill className="object-cover" />
+            </div>
+          ) : null}
+          <div className="mt-4 space-y-2 text-sm font-semibold text-slate-500">
+            <p>픽업: {errand.pickup_name}</p>
+            <p>드롭: {errand.dropoff_name}</p>
           </div>
-        ) : null}
-        <div className="mt-4 space-y-2 text-sm font-semibold text-slate-500">
-          <p>픽업: {errand.pickup_name}</p>
-          <p>드롭: {errand.dropoff_name}</p>
         </div>
       </section>
 
