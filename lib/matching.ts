@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export type MatchedErrand = {
   errand_id: string;
+  requester_id: string;
   category: string;
   description: string;
   pickup_name: string;

@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { MessageCircle, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MessageCircle, Star, UserCircle } from "lucide-react";
 import GoogleMap from "@/components/GoogleMap";
 import { createClient } from "@/lib/supabase/client";
 
 const steps = ["requested", "matched", "in_progress", "completed"];
 const labels = ["요청됨", "매칭됨", "진행중", "완료"];
+const categoryLabels: Record<string, string> = {
+  delivery: "물건 전달",
+  purchase: "구매 대행",
+  pickup: "픽업",
+  etc: "기타"
+};
 
 type Errand = {
   id: string;
@@ -25,9 +32,20 @@ type Errand = {
   matched_helper_id: string | null;
 };
 
+type UserProfile = {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  level: number;
+  rating_avg: number;
+  total_helps: number;
+};
+
 export default function ErrandDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const [errand, setErrand] = useState<Errand | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [usersById, setUsersById] = useState<Record<string, UserProfile>>({});
   const [rating, setRating] = useState(5);
   const [thankMessage, setThankMessage] = useState("");
   const [message, setMessage] = useState("");
@@ -48,29 +66,52 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
         return;
       }
       setErrand(data);
+
+      const loadedErrand = data as Errand;
+      const participantIds = [
+        loadedErrand.requester_id,
+        loadedErrand.matched_helper_id
+      ].filter(Boolean) as string[];
+
+      if (participantIds.length) {
+        const { data: users } = await supabase
+          .from("users")
+          .select("id, name, avatar_url, level, rating_avg, total_helps")
+          .in("id", participantIds);
+
+        setUsersById(
+          Object.fromEntries(
+            ((users || []) as UserProfile[]).map((user) => [user.id, user])
+          )
+        );
+      }
     };
 
     load();
   }, [params.id]);
 
   const helper = userId && errand?.matched_helper_id === userId;
+  const requester = userId && errand?.requester_id === userId;
+  const participant = Boolean(requester || helper);
   const currentIndex = Math.max(0, steps.indexOf(errand?.status || "requested"));
+  const canAdvance = helper && (errand?.status === "matched" || errand?.status === "in_progress");
   const nextStatus = errand?.status === "matched" ? "in_progress" : "completed";
+  const canChat = participant && Boolean(errand?.matched_helper_id);
 
   const updateStatus = async () => {
     if (!errand) return;
     const supabase = createClient();
-    const { error } = await supabase
-      .from("errands")
-      .update({ status: nextStatus })
-      .eq("id", errand.id);
+    const { data, error } = await supabase.rpc("advance_errand_status", {
+      p_errand_id: errand.id,
+      p_next_status: nextStatus
+    });
 
     if (error) {
       setMessage(error.message);
       return;
     }
 
-    setErrand({ ...errand, status: nextStatus });
+    setErrand((data as Errand) || { ...errand, status: nextStatus });
   };
 
   const submitReview = async () => {
@@ -105,6 +146,24 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
     lng: errand.dropoff_lng,
     name: errand.dropoff_name
   };
+  const requesterProfile = usersById[errand.requester_id];
+  const helperProfile = errand.matched_helper_id ? usersById[errand.matched_helper_id] : null;
+  const counterpart =
+    requester && helperProfile
+      ? { label: "헬퍼", profile: helperProfile }
+      : helper && requesterProfile
+        ? { label: "의뢰인", profile: requesterProfile }
+        : null;
+  const guide =
+    errand.status === "requested"
+      ? "헬퍼가 수락하면 채팅과 진행 상태를 사용할 수 있습니다."
+      : helper && errand.status === "matched"
+        ? "픽업을 마쳤다면 픽업 완료를 눌러 진행 상태로 바꾸세요."
+        : helper && errand.status === "in_progress"
+          ? "전달을 마쳤다면 전달 완료를 눌러 의뢰를 마무리하세요."
+          : requester && errand.status !== "completed"
+            ? "헬퍼와 채팅으로 세부 내용을 조율하세요."
+            : "완료된 의뢰입니다. 평가를 남길 수 있습니다.";
 
   return (
     <main className="px-5 py-6">
@@ -133,7 +192,9 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
       <section className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <GoogleMap origin={pickup} destination={dropoff} className="h-64" />
         <div className="p-4">
-          <p className="text-xs font-bold uppercase text-requester-600">{errand.category}</p>
+          <p className="text-xs font-bold uppercase text-requester-600">
+            {categoryLabels[errand.category] || errand.category}
+          </p>
           <p className="mt-2 text-base font-bold text-slate-950 dark:text-white">{errand.description}</p>
           {errand.photo_url ? (
             <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-lg">
@@ -148,16 +209,36 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
       </section>
 
       <section className="mt-4 rounded-lg bg-slate-100 p-4 dark:bg-slate-900">
-        <p className="text-sm font-black text-slate-950 dark:text-white">상대방 프로필</p>
-        <p className="mt-1 text-sm text-slate-500">매칭된 참여자 정보가 표시됩니다.</p>
+        <p className="text-sm font-black text-slate-950 dark:text-white">참여자</p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <ParticipantProfile label="의뢰인" profile={requesterProfile} active={requester} />
+          <ParticipantProfile label="헬퍼" profile={helperProfile} active={helper} />
+        </div>
+        {counterpart ? (
+          <p className="mt-3 text-xs font-bold text-slate-500">
+            상대방: {counterpart.profile.name || counterpart.label}
+          </p>
+        ) : (
+          <p className="mt-3 text-xs font-bold text-slate-500">
+            아직 매칭된 헬퍼가 없습니다.
+          </p>
+        )}
+        <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+          {guide}
+        </p>
       </section>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <button className="flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-200 text-sm font-black dark:border-slate-700">
+        <button
+          type="button"
+          onClick={() => router.push(`/chat/${errand.id}`)}
+          disabled={!canChat}
+          className="flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-200 text-sm font-black disabled:bg-slate-100 disabled:text-slate-400 dark:border-slate-700 dark:disabled:bg-slate-900"
+        >
           <MessageCircle size={18} />
-          채팅
+          {canChat ? "채팅" : "매칭 대기"}
         </button>
-        {helper && errand.status !== "completed" ? (
+        {canAdvance ? (
           <button onClick={updateStatus} className="h-12 rounded-lg bg-helper-600 text-sm font-black text-white">
             {errand.status === "matched" ? "픽업 완료" : "전달 완료"}
           </button>
@@ -193,5 +274,44 @@ export default function ErrandDetailPage({ params }: { params: { id: string } })
 
       {message ? <p className="mt-4 text-sm font-semibold text-slate-500">{message}</p> : null}
     </main>
+  );
+}
+
+function ParticipantProfile({
+  label,
+  profile,
+  active
+}: {
+  label: string;
+  profile?: UserProfile | null;
+  active: boolean | "" | null;
+}) {
+  return (
+    <div
+      className={`rounded-lg bg-white p-3 dark:bg-slate-950 ${
+        active ? "ring-2 ring-helper-500" : ""
+      }`}
+    >
+      <p className="text-xs font-black text-slate-400">{label}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-slate-500">
+          {profile?.avatar_url ? (
+            <Image src={profile.avatar_url} alt="" fill className="object-cover" />
+          ) : (
+            <UserCircle size={27} />
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+            {profile?.name || "대기 중"}
+          </p>
+          <p className="truncate text-[11px] font-bold text-slate-500">
+            {profile
+              ? `Lv.${profile.level} · ${profile.rating_avg.toFixed(1)}점 · ${profile.total_helps}회`
+              : "매칭 후 표시"}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

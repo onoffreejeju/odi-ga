@@ -4,6 +4,7 @@ create or replace function public.match_errands(
 )
 returns table (
   errand_id uuid,
+  requester_id uuid,
   category text,
   description text,
   pickup_name text,
@@ -15,6 +16,7 @@ returns table (
 ) as $$
   select
     e.id,
+    e.requester_id,
     e.category,
     e.description,
     e.pickup_name,
@@ -33,6 +35,8 @@ returns table (
   join public.routes r on r.id = route_id
   join public.users u on u.id = e.requester_id
   where e.status = 'requested'
+    and r.helper_id = auth.uid()
+    and e.requester_id <> auth.uid()
     and st_dwithin(
       st_makepoint(e.pickup_lng, e.pickup_lat)::geography,
       st_makeline(

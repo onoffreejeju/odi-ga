@@ -53,15 +53,10 @@ export default function MatchPage() {
   const help = async (errandId: string) => {
     if (!routeId) return;
     const supabase = createClient();
-    const { data: auth } = await supabase.auth.getUser();
-    const { error } = await supabase
-      .from("errands")
-      .update({
-        status: "matched",
-        matched_route_id: routeId,
-        matched_helper_id: auth.user?.id
-      })
-      .eq("id", errandId);
+    const { error } = await supabase.rpc("accept_errand", {
+      p_errand_id: errandId,
+      p_route_id: routeId
+    });
 
     if (error) {
       setMessage(error.message);
